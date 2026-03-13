@@ -132,6 +132,8 @@ Welcome <?php echo $_SESSION['user']; ?> (<?php echo $_SESSION['role']; ?>)
 
 <?php if($_SESSION['role'] == 'admin'){ ?>
 
+<a href="modules/profile/profile.php">My Profile</a>
+
 <a href="modules/personnel/personnel.php">Personnel</a>
 <a href="modules/inventory/inventory.php">Inventory</a>
 <a href="reports/attendance_report.php">Reports</a>
