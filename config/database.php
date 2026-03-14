@@ -5,7 +5,7 @@ $user = "root";
 $password = "";
 $database = "genservis_db";
 
-$conn = mysqli_connect($host,$user,$password,$database);
+$conn = new mysqli("localhost", "root", "", "genservis_db", 3307);
 
 if(!$conn){
 die("Database connection failed");

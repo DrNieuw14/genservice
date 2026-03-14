@@ -11,7 +11,7 @@ $nameSearch = clean_input($_GET['search'] ?? '');
 $sql = "
 SELECT a.id, p.fullname, a.date, a.time_in, a.time_out, a.status
 FROM attendance a
-JOIN personnel p ON p.id = a.user_id
+JOIN personnel p ON p.id = a.personnel_id
 WHERE 1 = 1
 ";
 $params = [];

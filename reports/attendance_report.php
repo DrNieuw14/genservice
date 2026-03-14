@@ -1,14 +1,14 @@
 <?php
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../config/auth.php';
-require_once __DIR__ . '/../../config/layout.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/layout.php';
 
 require_role(['admin', 'supervisor']);
 
 $dateFilter = clean_input($_GET['date'] ?? '');
 $nameSearch = clean_input($_GET['search'] ?? '');
 
-$sql = "SELECT a.id, p.fullname, a.date, a.time_in, a.time_out, a.status FROM attendance a JOIN personnel p ON p.id = a.user_id WHERE 1=1";
+$sql = "SELECT a.id, p.fullname, a.date, a.time_in, a.time_out, a.status FROM attendance a JOIN personnel p ON p.id = a.personnel_id WHERE 1=1";
 $params = [];
 $types = '';
 if ($dateFilter !== '') {
@@ -39,8 +39,6 @@ $queryString = http_build_query(['date' => $dateFilter, 'search' => $nameSearch]
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= htmlspecialchars(app_url('assets/css/app.css'), ENT_QUOTES, 'UTF-8'); ?>">
 </head>
-
-</body>
 <body>
 <div class="container-fluid app-layout">
     <div class="row">

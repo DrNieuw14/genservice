@@ -16,14 +16,14 @@ if (isset($_POST['login'])) {
     if ($usernameValue === '' || $password === '') {
         $errorMessage = "Please enter both username and password.";
     } else {
-        $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE username = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, username, password, role, personnel_id FROM users WHERE username = ? LIMIT 1");
 
         if ($stmt) {
             $stmt->bind_param("s", $usernameValue);
             $stmt->execute();
             $result = $stmt->get_result();
 
-            if ($result && $result->num_rows === 1) {
+            if ($result->num_rows === 1) {
                 $user = $result->fetch_assoc();
 
                 if (password_verify($password, $user['password'])) {
@@ -31,6 +31,7 @@ if (isset($_POST['login'])) {
                     $_SESSION['user'] = $user['username'];
                     $_SESSION['role'] = $user['role'];
                     $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['personnel_id'] = $user['personnel_id'];
 
                     header("Location: dashboard.php");
                     exit();

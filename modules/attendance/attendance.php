@@ -5,6 +5,8 @@ require_once __DIR__ . '/../../config/layout.php';
 
 require_role(['admin', 'supervisor', 'personnel']);
 
+$isPersonnel = ($_SESSION['role'] === 'personnel');
+
 $feedback = ['type' => '', 'message' => ''];
 $today = date('Y-m-d');
 $currentTime = date('H:i:s');
@@ -18,12 +20,14 @@ while ($row = $personnelResult->fetch_assoc()) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = clean_input($_POST['action'] ?? '');
-    $userId = (int) ($_POST['user_id'] ?? 0);
+    $userId = $isPersonnel
+    ? (int) $_SESSION['personnel_id']
+    : (int) ($_POST['user_id'] ?? 0);
 
     if ($userId <= 0) {
         $feedback = ['type' => 'danger', 'message' => 'Please select personnel.'];
     } elseif ($action === 'time_in') {
-        $checkSql = 'SELECT id FROM attendance WHERE user_id = ? AND date = ? LIMIT 1';
+$checkSql = 'SELECT id FROM attendance WHERE personnel_id = ? AND date = ? LIMIT 1';
         $checkStmt = $conn->prepare($checkSql);
         $checkStmt->bind_param('is', $userId, $today);
         $checkStmt->execute();
@@ -34,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $feedback = ['type' => 'warning', 'message' => 'Duplicate Time In is not allowed.'];
         } else {
             $status = ($currentTime > '08:00:00') ? 'Late' : 'Present';
-            $insertSql = 'INSERT INTO attendance (user_id, date, time_in, status) VALUES (?, ?, ?, ?)';
+            $insertSql = 'INSERT INTO attendance (personnel_id, date, time_in, status) VALUES (?, ?, ?, ?)';
             $insertStmt = $conn->prepare($insertSql);
             $insertStmt->bind_param('isss', $userId, $today, $currentTime, $status);
             $insertStmt->execute();
@@ -42,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $feedback = ['type' => 'success', 'message' => "Time In recorded with status: {$status}."];
         }
     } elseif ($action === 'time_out') {
-        $updateSql = 'UPDATE attendance SET time_out = ? WHERE user_id = ? AND date = ? AND time_out IS NULL';
+        $updateSql = 'UPDATE attendance SET time_out = ? WHERE personnel_id = ? AND date = ? AND time_out IS NULL';
         $updateStmt = $conn->prepare($updateSql);
         $updateStmt->bind_param('sis', $currentTime, $userId, $today);
         $updateStmt->execute();
@@ -83,14 +87,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="card-body">
                     <form method="post" class="row g-3 align-items-end">
                         <div class="col-md-6">
-                            <label class="form-label">Personnel</label>
-                            <select name="user_id" class="form-select" required>
-                                <option value="">Select personnel...</option>
-                                <?php foreach ($personnelList as $person): ?>
-                                    <option value="<?= (int) $person['id']; ?>"><?= htmlspecialchars($person['fullname'], ENT_QUOTES, 'UTF-8'); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+
+<?php if (!$isPersonnel): ?>
+
+<label class="form-label">Personnel</label>
+<select name="user_id" class="form-select" required>
+<option value="">Select personnel...</option>
+
+<?php foreach ($personnelList as $person): ?>
+<option value="<?= (int) $person['id']; ?>">
+<?= htmlspecialchars($person['fullname'], ENT_QUOTES, 'UTF-8'); ?>
+</option>
+<?php endforeach; ?>
+
+</select>
+
+<?php else: ?>
+
+<input type="hidden" name="user_id" value="<?= (int) $_SESSION['personnel_id']; ?>">
+
+<label class="form-label">Personnel</label>
+<p class="form-control-plaintext">
+<strong><?= htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8'); ?></strong>
+</p>
+
+<?php endif; ?>
+
+</div>
                         <div class="col-md-6 d-flex gap-2">
                             <button class="btn btn-success" type="submit" name="action" value="time_in">Time In</button>
                             <button class="btn btn-danger" type="submit" name="action" value="time_out">Time Out</button>
